@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Spotify Mini Player</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI',
+                    Roboto, Helvetica, Arial, sans-serif;
+                background: linear-gradient(135deg, #1db954, #1ed760, #191414);
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            }
+
+            .player-container {
+                background: #181818;
+                border-radius: 20px;
+                padding: 30px;
+                width: 100%;
+                max-width: 400px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .album-art {
+                width: 100%;
+                height: 250px;
+                border-radius: 15px;
+                background: linear-gradient(
+                    45deg,
+                    #1db954,
+                    #1ed760,
+                    #ff6b6b,
+                    #4ecdc4
+                );
+                background-size: 400% 400%;
+                animation: gradientShift 8s ease infinite;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 20px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .album-art::before {
+                content: '♪';
+                font-size: 60px;
+                color: rgba(255, 255, 255, 0.8);
+                text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+            }
+
+            @keyframes gradientShift {
+                0% {
+                    background-position: 0% 50%;
+                }
+                50% {
+                    background-position: 100% 50%;
+                }
+                100% {
+                    background-position: 0% 50%;
+                }
+            }
+
+            .song-info {
+                text-align: center;
+                margin-bottom: 25px;
+            }
+
+            .song-title {
+                color: #fff;
+                font-size: 20px;
+                font-weight: 700;
+                margin-bottom: 5px;
+                text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
+            }
+
+            .artist-name {
+                color: #b3b3b3;
+                font-size: 14px;
+                font-weight: 400;
+            }
+
+            .progress-section {
+                margin-bottom: 25px;
+            }
+
+            .progress-bar {
+                width: 100%;
+                height: 6px;
+                background: #404040;
+                border-radius: 3px;
+                position: relative;
+                cursor: pointer;
+                margin-bottom: 10px;
+            }
+
+            .progress-fill {
+                height: 100%;
+                background: linear-gradient(90deg, #1db954, #1ed760);
+                border-radius: 3px;
+                width: 30%;
+                position: relative;
+                transition: width 0.1s ease;
+            }
+
+            .progress-fill::after {
+                content: '';
+                width: 12px;
+                height: 12px;
+                background: #fff;
+                border-radius: 50%;
+                position: absolute;
+                right: -6px;
+                top: 50%;
+                transform: translateY(-50%);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+                opacity: 0;
+                transition: opacity 0.2s ease;
+            }
+
+            .progress-bar:hover .progress-fill::after {
+                opacity: 1;
+            }
+
+            .time-info {
+                display: flex;
+                justify-content: space-between;
+                color: #b3b3b3;
+                font-size: 12px;
+                font-weight: 400;
+            }
+
+            .controls {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 20px;
+                margin-bottom: 25px;
+            }
+
+            .control-btn {
+                background: none;
+                border: none;
+                color: #b3b3b3;
+                cursor: pointer;
+                font-size: 18px;
+                padding: 10px;
+                border-radius: 50%;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 45px;
+                height: 45px;
+            }
+
+            .control-btn:hover {
+                color: #fff;
+                transform: scale(1.1);
+            }
+
+            .play-btn {
+                background: #1db954;
+                color: #fff;
+                font-size: 20px;
+                width: 55px;
+                height: 55px;
+                box-shadow: 0 5px 20px rgba(29, 185, 84, 0.4);
+            }
+
+            .play-btn:hover {
+                background: #1ed760;
+                transform: scale(1.05);
+                box-shadow: 0 8px 25px rgba(29, 185, 84, 0.6);
+            }
+
+            .volume-section {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .volume-icon {
+                color: #b3b3b3;
+                font-size: 16px;
+                width: 20px;
+            }
+
+            .volume-bar {
+                flex: 1;
+                height: 4px;
+                background: #404040;
+                border-radius: 2px;
+                position: relative;
+                cursor: pointer;
+            }
+
+            .volume-fill {
+                height: 100%;
+                background: #1db954;
+                border-radius: 2px;
+                width: 70%;
+                position: relative;
+                transition: width 0.1s ease;
+            }
+
+            .volume-fill::after {
+                content: '';
+                width: 10px;
+                height: 10px;
+                background: #fff;
+                border-radius: 50%;
+                position: absolute;
+                right: -5px;
+                top: 50%;
+                transform: translateY(-50%);
+                opacity: 0;
+                transition: opacity 0.2s ease;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            }
+
+            .volume-bar:hover .volume-fill::after {
+                opacity: 1;
+            }
+
+            .playing {
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.05);
+                }
+            }
+
+            @media (max-width: 480px) {
+                .player-container {
+                    padding: 20px;
+                }
+
+                .album-art {
+                    height: 200px;
+                }
+
+                .controls {
+                    gap: 15px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="player-container">
+            <div class="album-art" id="albumArt"></div>
+
+            <div class="song-info">
+                <div class="song-title" id="songTitle">Blinding Lights</div>
+                <div class="artist-name" id="artistName">The Weeknd</div>
+            </div>
+
+            <div class="progress-section">
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="time-info">
+                    <span id="currentTime">1:23</span>
+                    <span id="totalTime">3:20</span>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn" id="prevBtn">⏮</button>
+                <button class="control-btn play-btn" id="playBtn">▶</button>
+                <button class="control-btn" id="nextBtn">⏭</button>
+            </div>
+
+            <div class="volume-section">
+                <span class="volume-icon">🔊</span>
+                <div class="volume-bar" id="volumeBar">
+                    <div class="volume-fill" id="volumeFill"></div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            class SpotifyPlayer {
+                constructor() {
+                    this.isPlaying = false;
+                    this.currentProgress = 30;
+                    this.currentVolume = 70;
+                    this.currentSong = 0;
+
+                    this.songs = [
+                        {
+                            title: 'Blinding Lights',
+                            artist: 'The Weeknd',
+                            duration: '3:20',
+                        },
+                        {
+                            title: 'Watermelon Sugar',
+                            artist: 'Harry Styles',
+                            duration: '2:54',
+                        },
+                        {
+                            title: 'Levitating',
+                            artist: 'Dua Lipa',
+                            duration: '3:23',
+                        },
+                        {
+                            title: 'As It Was',
+                            artist: 'Harry Styles',
+                            duration: '2:47',
+                        },
+                        {
+                            title: 'Heat Waves',
+                            artist: 'Glass Animals',
+                            duration: '3:58',
+                        },
+                    ];
+
+                    this.initElements();
+                    this.bindEvents();
+                    this.updateDisplay();
+                    this.startProgressAnimation();
+                }
+
+                initElements() {
+                    this.playBtn = document.getElementById('playBtn');
+                    this.prevBtn = document.getElementById('prevBtn');
+                    this.nextBtn = document.getElementById('nextBtn');
+                    this.progressBar = document.getElementById('progressBar');
+                    this.progressFill = document.getElementById('progressFill');
+                    this.volumeBar = document.getElementById('volumeBar');
+                    this.volumeFill = document.getElementById('volumeFill');
+                    this.songTitle = document.getElementById('songTitle');
+                    this.artistName = document.getElementById('artistName');
+                    this.currentTime = document.getElementById('currentTime');
+                    this.totalTime = document.getElementById('totalTime');
+                    this.albumArt = document.getElementById('albumArt');
+                }
+
+                bindEvents() {
+                    this.playBtn.addEventListener('click', () =>
+                        this.togglePlay()
+                    );
+                    this.prevBtn.addEventListener('click', () =>
+                        this.previousSong()
+                    );
+                    this.nextBtn.addEventListener('click', () =>
+                        this.nextSong()
+                    );
+
+                    this.progressBar.addEventListener('click', (e) =>
+                        this.setProgress(e)
+                    );
+                    this.volumeBar.addEventListener('click', (e) =>
+                        this.setVolume(e)
+                    );
+
+                    // Keyboard shortcuts
+                    document.addEventListener('keydown', (e) => {
+                        if (e.code === 'Space') {
+                            e.preventDefault();
+                            this.togglePlay();
+                        }
+                    });
+                }
+
+                togglePlay() {
+                    this.isPlaying = !this.isPlaying;
+                    this.playBtn.innerHTML = this.isPlaying ? '⏸' : '▶';
+
+                    if (this.isPlaying) {
+                        this.albumArt.classList.add('playing');
+                    } else {
+                        this.albumArt.classList.remove('playing');
+                    }
+                }
+
+                previousSong() {
+                    this.currentSong =
+                        (this.currentSong - 1 + this.songs.length) %
+                        this.songs.length;
+                    this.currentProgress = 0;
+                    this.updateDisplay();
+                }
+
+                nextSong() {
+                    this.currentSong =
+                        (this.currentSong + 1) % this.songs.length;
+                    this.currentProgress = 0;
+                    this.updateDisplay();
+                }
+
+                setProgress(e) {
+                    const rect = this.progressBar.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const percentage = (x / rect.width) * 100;
+                    this.currentProgress = Math.max(
+                        0,
+                        Math.min(100, percentage)
+                    );
+                    this.updateProgressDisplay();
+                }
+
+                setVolume(e) {
+                    const rect = this.volumeBar.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const percentage = (x / rect.width) * 100;
+                    this.currentVolume = Math.max(0, Math.min(100, percentage));
+                    this.updateVolumeDisplay();
+                }
+
+                updateDisplay() {
+                    const song = this.songs[this.currentSong];
+                    this.songTitle.textContent = song.title;
+                    this.artistName.textContent = song.artist;
+                    this.totalTime.textContent = song.duration;
+                    this.updateProgressDisplay();
+                }
+
+                updateProgressDisplay() {
+                    this.progressFill.style.width = `${this.currentProgress}%`;
+                    const currentSeconds = Math.floor(
+                        (this.currentProgress / 100) * 200
+                    ); // Assuming 200 seconds max
+                    const minutes = Math.floor(currentSeconds / 60);
+                    const seconds = currentSeconds % 60;
+                    this.currentTime.textContent = `${minutes}:${seconds
+                        .toString()
+                        .padStart(2, '0')}`;
+                }
+
+                updateVolumeDisplay() {
+                    this.volumeFill.style.width = `${this.currentVolume}%`;
+                }
+
+                startProgressAnimation() {
+                    setInterval(() => {
+                        if (this.isPlaying && this.currentProgress < 100) {
+                            this.currentProgress += 0.5;
+                            this.updateProgressDisplay();
+
+                            if (this.currentProgress >= 100) {
+                                this.nextSong();
+                            }
+                        }
+                    }, 1000);
+                }
+            }
+
+            // Initialize the player when the page loads
+            document.addEventListener('DOMContentLoaded', () => {
+                new SpotifyPlayer();
+            });
+        </script>
+    </body>
+</html>
